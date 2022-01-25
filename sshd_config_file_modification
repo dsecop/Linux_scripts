@@ -1,0 +1,42 @@
+#! /usr/bin/python3
+from pathlib import Path
+
+path_to_file = Path('/etc/ssh/sshd_config')
+searched_value = 'PermitRootLogin'
+param = 'PermitRootLogin without-password'
+
+
+def main():
+    try:
+        with open(path_to_file, mode='r') as file:
+            lines = file.readlines()
+            matched_value = []
+            line_number = []
+            for index, value in enumerate(lines):
+                if searched_value in value:
+                    value = value.replace(' ', '')
+                    if value.startswith('#'):
+                        value = value.replace('#', '')
+                    if value[:len(searched_value)] == searched_value[:len(searched_value)]:
+                        line_number.append(index)
+                        matched_value.append(value)
+                        break
+    except (FileNotFoundError, PermissionError) as file_nf_error:
+        print(f'Something went wrong. {file_nf_error}')
+    if matched_value:
+        lines[line_number[0]] = param + '\n'
+        try:
+            with open(path_to_file, 'w') as to_file:
+                to_file.writelines(lines)
+        except PermissionError as access_error:
+            print(f'Something went wrong. {access_error}')
+    else:
+        try:
+            with open(path_to_file, 'a+') as file:
+                file.write(param)
+        except PermissionError as access_error:
+            print(f'Something went wrong. {access_error}')
+
+
+if __name__ == '__main__':
+    main()
